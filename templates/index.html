@@ -1,0 +1,46 @@
+{% include "header.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+<body>
+  <main class="d-flex flex-nowrap px-4 px-lg-5">
+    <!-- <div class="class= container px-4 px-lg-5"> -->
+    <!-- FILTERS SIDEBAR -->
+    <div class="flex-shrink-0 p-3" style="width: 280px;">
+      <a href="/" class="d-flex align-items-center pb-3 mb-3 link-body-emphasis text-decoration-none border-bottom">
+        <svg class="bi pe-none me-2" width="30" height="24">
+          <use xlink:href="#bootstrap"></use>
+        </svg>
+        <span class="fs-5 fw-semibold">Filters</span>
+      </a>
+      {{ render_form(form, novalidate=True, button_map={"submit": "primary", "clear": "secondary"}) }}
+    </div>
+
+    <!-- LIST OF CAFES -->
+    <div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-left">
+      <div class="list-group">
+        {% for cafe in cafes %}
+        <a href="{{ url_for('show_cafe', cafe_id=cafe.id) }}"
+          class="list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
+          <img src={{ cafe.img_url }} alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+          <div class="d-flex gap-2 w-100 justify-content-between">
+            <div>
+              <h6 class="mb-0">{{ cafe.name }}</h6>
+              <!-- Update below to show icons based on having features or not -->
+              <p class="mb-0 opacity-75">{% if cafe.has_wifi == True %} <i class='fas fa-wifi'> </i> {% endif %} {% if
+                cafe.has_sockets == True %} <i class='fas fa-plug'></i> {% endif %} {% if cafe.can_take_calls == True
+                %}
+                <i class='fas fa-phone'> </i> {% endif %} {% if cafe.has_toilet == True %} <i class='fas fa-toilet'>
+                </i>
+                {% endif %}
+              </p>
+            </div>
+            <small class="opacity-50 text-nowrap">{{ cafe.location }}</small>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</body>
+
+{% include "footer.html" %}
