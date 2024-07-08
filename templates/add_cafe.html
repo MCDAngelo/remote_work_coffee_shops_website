@@ -1,0 +1,33 @@
+{% include "header.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+<header class="masthead py-5"
+  style="background-image: url('../static/assets/img/generic_coffee.jpg'); background-size:cover">
+  <div class="container position-relative my-4 px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="page-heading">
+          {% if is_edit: %}
+          <h1>Edit Cafe Details </h1>
+          <span class="subheading">Help us keep our details up to date!</span>
+          {% else: %}
+          <h1>New Cafe</h1>
+          <span class="subheading">Help us keep up with all the new cafes!</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="mb-4 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% include "footer.html" %}

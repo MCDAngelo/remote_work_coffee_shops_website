@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from forms import CoffeeShopFilters
+from forms import CoffeeShopFilters, CoffeeShopForm
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
@@ -97,10 +97,26 @@ def show_cafe(cafe_id):
     return render_template("cafe_info.html", cafe=cafe)
 
 
-@app.route("/add_new")
+@app.route("/add_new", methods=["GET", "POST"])
 def add_new_cafe():
-    # Update template
-    return render_template("index.html")
+    cafe_form = create_filter_form(CoffeeShopForm)
+    if cafe_form.validate_on_submit():
+        new_shop = Cafe(  # type: ignore[call-arg]
+            name=cafe_form.name.data,
+            map_url=cafe_form.map_url.data,
+            img_url=cafe_form.img_url.data,
+            location=cafe_form.location.data,
+            seats=cafe_form.seats.data,
+            has_toilet=cafe_form.has_toilet.data,
+            has_wifi=cafe_form.has_wifi.data,
+            has_sockets=cafe_form.has_sockets.data,
+            can_take_calls=cafe_form.can_take_calls.data,
+            coffee_price=f"£{cafe_form.coffee_price.data}",
+        )
+        db.session.add(new_shop)
+        db.session.commit()
+        return redirect(url_for("show_cafe", cafe_id=new_shop.id))
+    return render_template("add_cafe.html", form=cafe_form)
 
 
 @app.route("/contact")
