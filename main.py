@@ -1,8 +1,17 @@
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap5
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from forms import CoffeeShopFilters, CoffeeShopForm, LoginForm, RegisterForm
 
@@ -10,6 +19,9 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
 
 bootstrap = Bootstrap5(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 
 # Set up class for database:
@@ -23,8 +35,9 @@ db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
 
-# Define table schema
+# Define table schemas
 class Cafe(db.Model):
+    __tablename__ = "cafe"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     map_url: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -39,9 +52,23 @@ class Cafe(db.Model):
     potentially_closed: Mapped[bool] = mapped_column(Boolean, nullable=True)
 
 
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(String(100), nullable=False)
+    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    admin: Mapped[bool] = mapped_column(Boolean, nullable=True)
+
+
 # Create the db:
 with app.app_context():
     db.create_all()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.get_or_404(User, user_id)
 
 
 def create_filter_form(form_class):
@@ -125,28 +152,71 @@ def report_closure(cafe_id):
     submitted = False
     cafe = db.get_or_404(Cafe, cafe_id)
     if request.method == "POST":
-        submitted = True
-        cafe.potentially_closed = True
-        db.session.commit()
+        if current_user.is_authenticated:
+            submitted = True
+            cafe.potentially_closed = True
+            db.session.commit()
+        else:
+            flash("Please log in to report a closure.")
+            return redirect(url_for("login"))
     return render_template("report_closure.html", cafe=cafe, submitted_req=submitted)
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        pswd = form.password.data
+        user = db.session.execute(db.select(User).where(User.email == email)).scalar()
+        if not user:
+            flash("Hmm, this email doesn't exist in our records, try again.")
+            return redirect(url_for("login"))
+        elif not check_password_hash(user.password, pswd):
+            flash("Incorrect password, try again.")
+            return redirect(url_for("login"))
+        else:
+            login_user(user)
+            return redirect(url_for("home"))
     return render_template("login.html", form=form)
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        existing_user = db.session.execute(
+            db.select(User).where(User.email == email)
+        ).scalar()
+        if existing_user:
+            flash(
+                "You already have an account registered with this email, login instead!"
+            )
+            return redirect(url_for("login"))
+        else:
+            hashed_pswd = generate_password_hash(
+                password=form.password.data,
+                method="pbkdf2:sha256",
+                salt_length=8,
+            )
+            new_user = User(  # type: ignore[call-arg]
+                email=email,
+                username=form.username.data,
+                password=hashed_pswd,
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for("home"))
     return render_template("register.html", form=form)
 
 
 @app.route("/logout")
+@login_required
 def logout():
-    # Update template
-    return render_template("index.html")
+    logout_user()
+    return redirect(url_for("home"))
 
 
 if __name__ == "__main__":

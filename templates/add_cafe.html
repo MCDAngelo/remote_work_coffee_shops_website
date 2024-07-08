@@ -23,8 +23,11 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
+        {% if current_user.is_authenticated: %}
         {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
-        </p>
+        {% else %}
+        <p>Log in to recommend a new coffee shop. <a href={{ url_for("login") }}>Login Here</a></p>
+        {% endif %}
       </div>
     </div>
   </div>
