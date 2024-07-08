@@ -4,10 +4,10 @@ from wtforms import (
     DecimalField,
     SelectField,
     SelectMultipleField,
-    SubmitField,
     StringField,
+    SubmitField,
 )
-from wtforms.validators import DataRequired, Length, NumberRange, URL
+from wtforms.validators import URL, DataRequired, Length, NumberRange
 
 
 class CoffeeShopFilters(FlaskForm):

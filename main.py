@@ -1,7 +1,7 @@
+from flask import Flask, redirect, render_template, url_for
 from flask_bootstrap import Bootstrap5
-from flask import Flask, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Integer
+from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from forms import CoffeeShopFilters, CoffeeShopForm
