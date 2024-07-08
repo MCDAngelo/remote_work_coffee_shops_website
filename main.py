@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from forms import CoffeeShopFilters, CoffeeShopForm
+from forms import CoffeeShopFilters, CoffeeShopForm, LoginForm, RegisterForm
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
@@ -133,14 +133,14 @@ def report_closure(cafe_id):
 
 @app.route("/login")
 def login():
-    # Update template
-    return render_template("index.html")
+    form = LoginForm()
+    return render_template("login.html", form=form)
 
 
 @app.route("/register")
 def register():
-    # Update template
-    return render_template("index.html")
+    form = RegisterForm()
+    return render_template("register.html", form=form)
 
 
 @app.route("/logout")

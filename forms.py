@@ -2,6 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import (
     BooleanField,
     DecimalField,
+    EmailField,
+    PasswordField,
     SelectField,
     SelectMultipleField,
     StringField,
@@ -44,3 +46,18 @@ class CoffeeShopForm(FlaskForm):
         validators=[NumberRange(min=0.5, max=20)],
     )
     submit = SubmitField("Submit")
+
+
+class RegisterForm(FlaskForm):
+    email = EmailField("Email", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    username = StringField(
+        "Username", validators=[DataRequired(), Length(min=5, max=20)]
+    )
+    submit = SubmitField("Sign me up!")
+
+
+class LoginForm(FlaskForm):
+    email = EmailField("Email", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Login")
