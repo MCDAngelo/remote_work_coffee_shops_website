@@ -41,6 +41,6 @@ class CoffeeShopForm(FlaskForm):
     seats = SelectField("Approx. number of seats", validators=[DataRequired()])
     coffee_price = DecimalField(
         "Cost of a cup of coffee (£)",
-        validators=[DataRequired(), NumberRange(min=0.5, max=20)],
+        validators=[NumberRange(min=0.5, max=20)],
     )
     submit = SubmitField("Submit")

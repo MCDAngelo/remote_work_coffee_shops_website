@@ -10,10 +10,16 @@
       <div class="col-lg-6">
         <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ cafe.name }}</h1>
         <p class="lead">{{ cafe.location }}</p>
+        {% if cafe.potentially_closed %}
+        <p><em>
+            Our community has flagged that this cafe may be closed
+          </em>
+        </p>
+        {% endif %}
         <p>{% if cafe.has_wifi %}<i class='fas fa-wifi'> </i> Wifi Available {% else %} <i
             class="fa-solid fa-link-slash"></i> No Wifi {% endif %}</p>
         <p>{% if cafe.has_sockets %}<i class='fas fa-plug'> </i> Sockets Available {% else %} <i
-            class="fa-solid fa-plug-circle-xmark"></i>No Sockets 🪫
+            class="fa-solid fa-plug-circle-xmark"></i>No Sockets
           {% endif %}
         </p>
         <p>{% if cafe.can_take_calls %}<i class='fas fa-phone'> </i> Phone-call Friendly {% else %} <i
@@ -26,6 +32,9 @@
         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
         </div>
       </div>
+      <a href={{ url_for("report_closure", cafe_id=cafe.id) }}>
+        <p class="text-end"><i class="fas fa-times-circle "></i> report closure</p>
+      </a>
     </div>
   </div>
 </body>

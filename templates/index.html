@@ -24,14 +24,14 @@
           <img src={{ cafe.img_url }} alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
           <div class="d-flex gap-2 w-100 justify-content-between">
             <div>
-              <h6 class="mb-0">{{ cafe.name }}</h6>
-              <!-- Update below to show icons based on having features or not -->
-              <p class="mb-0 opacity-75">{% if cafe.has_wifi == True %} <i class='fas fa-wifi'> </i> {% endif %} {% if
-                cafe.has_sockets == True %} <i class='fas fa-plug'></i> {% endif %} {% if cafe.can_take_calls == True
-                %}
-                <i class='fas fa-phone'> </i> {% endif %} {% if cafe.has_toilet == True %} <i class='fas fa-toilet'>
-                </i>
-                {% endif %}
+              <h6 class="mb-0">{{ cafe.name }} {% if cafe.potentially_closed %} <em style="color:grey">-Potentially
+                  Closed-</em> {%
+                endif %}</h6>
+              <p class="mb-0 opacity-75">
+                {% if cafe.has_wifi == True %} <i class='fas fa-wifi'> </i> {% endif %}
+                {% if cafe.has_sockets == True %} <i class='fas fa-plug'></i> {% endif %}
+                {% if cafe.can_take_calls == True %} <i class='fas fa-phone'> </i> {% endif %}
+                {% if cafe.has_toilet == True %} <i class='fas fa-toilet'> </i> {% endif %}
               </p>
             </div>
             <small class="opacity-50 text-nowrap">{{ cafe.location }}</small>

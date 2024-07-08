@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean, Integer, String
@@ -36,6 +36,7 @@ class Cafe(db.Model):
     has_sockets: Mapped[bool] = mapped_column(Boolean, nullable=False)
     can_take_calls: Mapped[bool] = mapped_column(Boolean, nullable=False)
     coffee_price: Mapped[str] = mapped_column(String(250), nullable=True)
+    potentially_closed: Mapped[bool] = mapped_column(Boolean, nullable=True)
 
 
 # Create the db:
@@ -91,7 +92,7 @@ def home():
     return render_template("index.html", cafes=cafes_list, form=filter_form)
 
 
-@app.route("/cafe-<int:cafe_id>")
+@app.route("/cafe/<int:cafe_id>")
 def show_cafe(cafe_id):
     cafe = db.get_or_404(Cafe, cafe_id)
     return render_template("cafe_info.html", cafe=cafe)
@@ -119,10 +120,15 @@ def add_new_cafe():
     return render_template("add_cafe.html", form=cafe_form)
 
 
-@app.route("/contact")
-def contact():
-    # Update template
-    return render_template("index.html")
+@app.route("/report_closure/<int:cafe_id>", methods=["GET", "POST"])
+def report_closure(cafe_id):
+    submitted = False
+    cafe = db.get_or_404(Cafe, cafe_id)
+    if request.method == "POST":
+        submitted = True
+        cafe.potentially_closed = True
+        db.session.commit()
+    return render_template("report_closure.html", cafe=cafe, submitted_req=submitted)
 
 
 @app.route("/login")

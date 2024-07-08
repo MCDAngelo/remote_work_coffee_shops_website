@@ -1,0 +1,39 @@
+{% include "header.html" %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+<header class="masthead py-5"
+  style="background-image: url('../static/assets/img/generic_coffee.jpg'); background-size:cover">
+  <div class="container position-relative my-4 px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="page-heading">
+          <h1 style="color:white">Report Closure</h1>
+          <span class="subheading" style="color:white">Thank you for keeping us up to date!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="mb-4 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        {% if submitted_req %}
+        <p> Thank you for your submission! </p>
+        <p> Our team will review <a href={{ url_for("show_cafe", cafe_id=cafe.id)}}>{{ cafe.name }}</a> located in {{
+          cafe.location }}.</p>
+        {% else %}
+        <p> Reporting closure for <a href={{ url_for("show_cafe", cafe_id=cafe.id)}}>{{ cafe.name }}</a> located in {{
+          cafe.location }}.</p>
+        <p> To confirm, click on the button below.</p>
+        <form method="post">
+          <button type="submit" class="btn btn-primary">Report Closed</button>
+        </form>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</main>
+
+{% include "footer.html" %}
