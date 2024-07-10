@@ -2,7 +2,9 @@
 
 <body>
   <div class="container" style="display:grid; grid-template-columns:1fr 3fr;">
-    {% include "admin_navbar.html" %}
+    {% with active_page="users_page" %}
+    {% include "admin_navbar.html"%}
+    {% endwith %}
 
 
     <!-- <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4"> -->
