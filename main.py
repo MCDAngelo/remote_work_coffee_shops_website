@@ -1,3 +1,4 @@
+from functools import wraps
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import (
@@ -71,7 +72,19 @@ def load_user(user_id):
     return db.get_or_404(User, user_id)
 
 
-def create_filter_form(form_class):
+def admin_only(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return login_manager.unauthorized()
+        if not current_user.admin:
+            return login_manager.unauthorized()
+        return func(*args, **kwargs)
+
+    return decorated_view
+
+
+def create_filter_form(filter_form):
     locations_list = (
         db.session.execute(db.select(Cafe.location).distinct().order_by(Cafe.location))
         .scalars()
@@ -82,7 +95,6 @@ def create_filter_form(form_class):
         .scalars()
         .all()
     )
-    filter_form = form_class()
     filter_form.location.choices = locations_list
     filter_form.seats.choices = cafe_seats_list
     return filter_form
@@ -91,7 +103,8 @@ def create_filter_form(form_class):
 @app.route("/", methods=["POST", "GET"])
 def home():
     cafes_list = db.session.execute(db.select(Cafe)).scalars().all()
-    filter_form = create_filter_form(CoffeeShopFilters)
+    filter_form = CoffeeShopFilters()
+    filter_form = create_filter_form(filter_form)
     if filter_form.validate_on_submit() & filter_form.submit.data:
         q = db.select(Cafe)
         if filter_form.has_wifi.data:
@@ -127,7 +140,8 @@ def show_cafe(cafe_id):
 
 @app.route("/add_new", methods=["GET", "POST"])
 def add_new_cafe():
-    cafe_form = create_filter_form(CoffeeShopForm)
+    cafe_form = CoffeeShopForm()
+    cafe_form = create_filter_form(cafe_form)
     if cafe_form.validate_on_submit():
         new_shop = Cafe(  # type: ignore[call-arg]
             name=cafe_form.name.data,
@@ -144,7 +158,7 @@ def add_new_cafe():
         db.session.add(new_shop)
         db.session.commit()
         return redirect(url_for("show_cafe", cafe_id=new_shop.id))
-    return render_template("add_cafe.html", form=cafe_form)
+    return render_template("add_cafe.html", form=cafe_form, is_edit=False)
 
 
 @app.route("/report_closure/<int:cafe_id>", methods=["GET", "POST"])
@@ -217,6 +231,59 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for("home"))
+
+
+@app.route("/admin")
+@admin_only
+def admin_view():
+    return render_template("admin.html", user=current_user)
+
+
+@app.route("/admin/edit_cafes")
+@admin_only
+def edit_cafes():
+    cafes = db.session.execute(db.select(Cafe)).scalars().all()
+    return render_template("admin.html", user=current_user, cafes=cafes)
+
+
+@app.route("/admin/edit_cafe/<int:cafe_id>", methods=["GET", "POST"])
+@admin_only
+def admin_edit_cafe(cafe_id):
+    print(url_for("static", filename="assets/img/generic_coffee.jpg"))
+    cafe = db.get_or_404(Cafe, cafe_id)
+    cafe_form = CoffeeShopForm(
+        name=cafe.name,
+        map_url=cafe.map_url,
+        img_url=cafe.img_url,
+        location=cafe.location,
+        seats=cafe.seats,
+        has_toilet=cafe.has_toilet,
+        has_sockets=cafe.has_sockets,
+        can_take_calls=cafe.can_take_calls,
+        coffee_price=float(cafe.coffee_price.replace("£", "")),
+    )
+    cafe_form = create_filter_form(cafe_form)
+    if cafe_form.validate_on_submit():
+        cafe.name = cafe_form.name.data
+        cafe.map_url = cafe_form.map_url.data
+        cafe.img_url = cafe_form.img_url.data
+        cafe.location = cafe_form.location.data
+        cafe.seats = cafe_form.seats.data
+        cafe.has_toilet = cafe_form.has_toilet.data
+        cafe.has_wifi = cafe_form.has_wifi.data
+        cafe.has_sockets = cafe_form.has_sockets.data
+        cafe.can_take_calls = cafe_form.can_take_calls.data
+        cafe.coffee_price = f"£{cafe_form.coffee_price.data}"
+        db.session.commit()
+        return redirect(url_for("show_cafe", cafe_id=cafe.id))
+    return render_template("add_cafe.html", form=cafe_form, is_edit=True)
+
+
+@app.route("/admin/edit_users")
+@admin_only
+def edit_users():
+    users = db.session.execute(db.select(User)).scalars().all()
+    return render_template("admin_users.html", user=current_user, users=users)
 
 
 if __name__ == "__main__":
