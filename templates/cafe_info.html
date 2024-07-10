@@ -11,11 +11,10 @@
         <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ cafe.name }}</h1>
         <p class="lead">{{ cafe.location }} </p>
         <p class="lead"><a href={{ cafe.map_url }}>Find on Google Maps</a></p>
-        {% if cafe.potentially_closed %}
-        <p><em>
-            Our community has flagged that this cafe may be closed
-          </em>
-        </p>
+        {% if cafe.deleted%}
+        <p style="color:red"><b> This cafe has closed. </b> </p>
+        {% elif cafe.potentially_closed %}
+        <p><em> Our community has flagged that this cafe may be closed </em> </p>
         {% endif %}
         <p>{% if cafe.has_wifi %}<i class='fas fa-wifi'> </i> Wifi Available {% else %} <i
             class="fa-solid fa-link-slash"></i> No Wifi {% endif %}</p>

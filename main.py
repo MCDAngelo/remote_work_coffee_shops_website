@@ -51,6 +51,7 @@ class Cafe(db.Model):
     can_take_calls: Mapped[bool] = mapped_column(Boolean, nullable=False)
     coffee_price: Mapped[str] = mapped_column(String(250), nullable=True)
     potentially_closed: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    deleted: Mapped[bool] = mapped_column(Boolean, nullable=True)
 
 
 class User(UserMixin, db.Model):
@@ -86,12 +87,19 @@ def admin_only(func):
 
 def create_filter_form(filter_form):
     locations_list = (
-        db.session.execute(db.select(Cafe.location).distinct().order_by(Cafe.location))
+        db.session.execute(
+            db.select(Cafe.location)
+            .where(~Cafe.deleted)
+            .distinct()
+            .order_by(Cafe.location)
+        )
         .scalars()
         .all()
     )
     cafe_seats_list = (
-        db.session.execute(db.select(Cafe.seats).distinct().order_by(Cafe.seats))
+        db.session.execute(
+            db.select(Cafe.seats).where(~Cafe.deleted).distinct().order_by(Cafe.seats)
+        )
         .scalars()
         .all()
     )
@@ -102,11 +110,13 @@ def create_filter_form(filter_form):
 
 @app.route("/", methods=["POST", "GET"])
 def home():
-    cafes_list = db.session.execute(db.select(Cafe)).scalars().all()
+    cafes_list = (
+        db.session.execute(db.select(Cafe).where(~Cafe.deleted)).scalars().all()
+    )
     filter_form = CoffeeShopFilters()
     filter_form = create_filter_form(filter_form)
     if filter_form.validate_on_submit() & filter_form.submit.data:
-        q = db.select(Cafe)
+        q = db.select(Cafe).where(~Cafe.deleted)
         if filter_form.has_wifi.data:
             q = q.where(Cafe.has_wifi)
         if filter_form.has_sockets.data:
@@ -243,13 +253,25 @@ def admin_view():
 @admin_only
 def edit_cafes():
     cafes = db.session.execute(db.select(Cafe)).scalars().all()
-    return render_template("admin.html", user=current_user, cafes=cafes)
+    return render_template("admin_cafes.html", user=current_user, cafes=cafes)
+
+
+@app.route("/admin/delete_cafe/<int:cafe_id>", methods=["GET", "POST"])
+@admin_only
+def delete_cafe(cafe_id):
+    submitted = False
+    cafe = db.get_or_404(Cafe, cafe_id)
+    if request.method == "POST":
+        submitted = True
+        cafe.deleted = True
+        db.session.commit()
+        redirect(url_for("edit_cafes"))
+    return render_template("admin_delete_cafe.html", cafe=cafe, submitted=submitted)
 
 
 @app.route("/admin/edit_cafe/<int:cafe_id>", methods=["GET", "POST"])
 @admin_only
 def admin_edit_cafe(cafe_id):
-    print(url_for("static", filename="assets/img/generic_coffee.jpg"))
     cafe = db.get_or_404(Cafe, cafe_id)
     cafe_form = CoffeeShopForm(
         name=cafe.name,
@@ -279,10 +301,21 @@ def admin_edit_cafe(cafe_id):
     return render_template("add_cafe.html", form=cafe_form, is_edit=True)
 
 
-@app.route("/admin/edit_users")
+@app.route("/admin/edit_users", methods=["GET", "POST"])
 @admin_only
 def edit_users():
     users = db.session.execute(db.select(User)).scalars().all()
+    if request.method == "POST":
+        admin_user_ids = request.form.getlist("make_admin")
+        print(admin_user_ids)
+        for user in users:
+            if str(user.id) in admin_user_ids:
+                user.admin = True
+            else:
+                user.admin = False
+            db.session.commit()
+        flash("Database has been successfully updated")
+        return redirect(url_for("edit_users"))
     return render_template("admin_users.html", user=current_user, users=users)
 
 

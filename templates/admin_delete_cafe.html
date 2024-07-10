@@ -1,0 +1,28 @@
+{% include "header.html" %}
+
+<body>
+  <div class="container" style="display:grid; grid-template-columns:1fr 3fr;">
+    {% with active_page="cafes" %}
+    {% include "admin_navbar.html"%}
+    {% endwith %}
+
+
+    <div class="container grid-child">
+      {% if submitted %}
+      <p> {{ cafe.name }} has been deleted and will no longer show up on home page </p>
+      {% else %}
+      <p> Confirm that you want to delete <a href={{ url_for("show_cafe", cafe_id=cafe.id)}}>{{ cafe.name }}</a>
+        located in {{
+        cafe.location }}.</p>
+      <p> To confirm, click on the button below.</p>
+      <form method="post">
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+      {% endif %}
+
+    </div>
+
+  </div>
+</body>
+
+{% include "footer.html" %}
