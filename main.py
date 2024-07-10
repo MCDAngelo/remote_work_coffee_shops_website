@@ -1,4 +1,5 @@
 from functools import wraps
+import os
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap5
@@ -18,7 +19,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from forms import CoffeeShopFilters, CoffeeShopForm, LoginForm, RegisterForm
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
+app.config["SECRET_KEY"] = os.getenv("APP_SECRET")
 
 bootstrap = Bootstrap5(app)
 
