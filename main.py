@@ -33,7 +33,7 @@ class Base(DeclarativeBase):
 
 
 # Set up database connection to app
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cafes.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URI", "sqlite:///cafes.db")
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
