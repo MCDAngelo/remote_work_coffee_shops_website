@@ -25,7 +25,8 @@
         {% if current_user.is_authenticated: %}
         {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
         {% else %}
-        <p>Log in to recommend a new coffee shop. <a href={{ url_for("login") }}>Login Here</a></p>
+        <p><a href={{ url_for("login") }}>Log in</a> or <a href={{ url_for("register") }}>register</a> to recommend a
+          new coffee shop </p>
         {% endif %}
       </div>
     </div>

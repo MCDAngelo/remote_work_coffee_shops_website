@@ -1,4 +1,5 @@
 from functools import wraps
+
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import (
@@ -87,19 +88,12 @@ def admin_only(func):
 
 def create_filter_form(filter_form):
     locations_list = (
-        db.session.execute(
-            db.select(Cafe.location)
-            .where(~Cafe.deleted)
-            .distinct()
-            .order_by(Cafe.location)
-        )
+        db.session.execute(db.select(Cafe.location).distinct().order_by(Cafe.location))
         .scalars()
         .all()
     )
     cafe_seats_list = (
-        db.session.execute(
-            db.select(Cafe.seats).where(~Cafe.deleted).distinct().order_by(Cafe.seats)
-        )
+        db.session.execute(db.select(Cafe.seats).distinct().order_by(Cafe.seats))
         .scalars()
         .all()
     )
@@ -111,12 +105,14 @@ def create_filter_form(filter_form):
 @app.route("/", methods=["POST", "GET"])
 def home():
     cafes_list = (
-        db.session.execute(db.select(Cafe).where(~Cafe.deleted)).scalars().all()
+        db.session.execute(db.select(Cafe).where(Cafe.deleted.isnot(True)))
+        .scalars()
+        .all()
     )
     filter_form = CoffeeShopFilters()
     filter_form = create_filter_form(filter_form)
     if filter_form.validate_on_submit() & filter_form.submit.data:
-        q = db.select(Cafe).where(~Cafe.deleted)
+        q = db.select(Cafe).where(Cafe.deleted.isnot(True))
         if filter_form.has_wifi.data:
             q = q.where(Cafe.has_wifi)
         if filter_form.has_sockets.data:
@@ -252,7 +248,11 @@ def admin_view():
 @app.route("/admin/edit_cafes")
 @admin_only
 def edit_cafes():
-    cafes = db.session.execute(db.select(Cafe)).scalars().all()
+    cafes = (
+        db.session.execute(db.select(Cafe).order_by(Cafe.potentially_closed.desc()))
+        .scalars()
+        .all()
+    )
     return render_template("admin_cafes.html", user=current_user, cafes=cafes)
 
 
@@ -266,7 +266,25 @@ def delete_cafe(cafe_id):
         cafe.deleted = True
         db.session.commit()
         redirect(url_for("edit_cafes"))
-    return render_template("admin_delete_cafe.html", cafe=cafe, submitted=submitted)
+    return render_template(
+        "admin_delete_cafe.html", cafe=cafe, submitted=submitted, form_type="delete"
+    )
+
+
+@app.route("/admin/restore_cafe/<int:cafe_id>", methods=["GET", "POST"])
+@admin_only
+def restore_cafe(cafe_id):
+    submitted = False
+    cafe = db.get_or_404(Cafe, cafe_id)
+    if request.method == "POST":
+        submitted = True
+        cafe.deleted = False
+        cafe.potentially_closed = False
+        db.session.commit()
+        redirect(url_for("edit_cafes"))
+    return render_template(
+        "admin_delete_cafe.html", cafe=cafe, submitted=submitted, form_type="restore"
+    )
 
 
 @app.route("/admin/edit_cafe/<int:cafe_id>", methods=["GET", "POST"])

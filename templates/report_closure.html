@@ -18,6 +18,7 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
+        {% if current_user.is_authenticated: %}
         {% if submitted_req %}
         <p> Thank you for your submission! </p>
         <p> Our team will review <a href={{ url_for("show_cafe", cafe_id=cafe.id)}}>{{ cafe.name }}</a> located in {{
@@ -29,6 +30,10 @@
         <form method="post">
           <button type="submit" class="btn btn-primary">Report Closed</button>
         </form>
+        {% endif %}
+        {% else %}
+        <p><a href={{ url_for("login") }}>Log in</a> or <a href={{ url_for("register") }}>register</a> to report a
+          closure.</p>
         {% endif %}
 
       </div>

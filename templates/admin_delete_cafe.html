@@ -8,8 +8,9 @@
 
 
     <div class="container grid-child">
+      {% if form_type == "delete": %}
       {% if submitted %}
-      <p> {{ cafe.name }} has been deleted and will no longer show up on home page </p>
+      <p> {{ cafe.name }} has been deleted and will no longer show up on the home page </p>
       {% else %}
       <p> Confirm that you want to delete <a href={{ url_for("show_cafe", cafe_id=cafe.id)}}>{{ cafe.name }}</a>
         located in {{
@@ -19,10 +20,22 @@
         <button type="submit" class="btn btn-danger">Delete</button>
       </form>
       {% endif %}
+      {% else %}
+      {% if submitted %}
+      <p> {{ cafe.name }} has been restored and will once again show up on the home page </p>
+      {% else %}
+      <p> Confirm that you want to restore <a href={{ url_for("show_cafe", cafe_id=cafe.id)}}>{{ cafe.name }}</a>
+        located in {{
+        cafe.location }}.</p>
+      <p> To confirm, click on the button below.</p>
+      <form method="post">
+        <button type="submit" class="btn btn-success">Restore</button>
+      </form>
+      {% endif %}
+      {% endif %}
 
     </div>
 
   </div>
-</body>
 
-{% include "footer.html" %}
+  {% include "footer.html" %}

@@ -16,6 +16,7 @@
           <thead>
             <tr>
               <th scope="col">Potentially Closed</th>
+              <th scope="col">Deleted</th>
               <th scope="col">Cafe ID</th>
               <th scope="col">Cafe Name</th>
               <th scope="col">Has Wifi</th>
@@ -31,8 +32,9 @@
           </thead>
           <tbody>
             {% for cafe in cafes %}
-            <tr>
+            <tr {% if cafe.potentially_closed: %} class="table-danger" {% endif %}>
               <td>{{ cafe.potentially_closed }} <a href={{ url_for("delete_cafe", cafe_id=cafe.id)}}>Delete</a></td>
+              <td>{{ cafe.deleted }} <a href={{ url_for("restore_cafe", cafe_id=cafe.id)}}>Restore</a></td>
               <td>{{ cafe.id }} <a href={{ url_for("admin_edit_cafe", cafe_id=cafe.id)}}>Edit</a></td>
               <td>{{ cafe.name }}</td>
               <td>{{ cafe.has_wifi }}</td>
