@@ -225,6 +225,7 @@ def register():
                 email=email,
                 username=form.username.data,
                 password=hashed_pswd,
+                admin=True if email == os.getenv("SUPER_ADMIN_EMAIL") else False,
             )
             db.session.add(new_user)
             db.session.commit()
